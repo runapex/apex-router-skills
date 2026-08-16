@@ -1,0 +1,6 @@
+{
+  "name": "apex-workflow",
+  "description": "Vendor-neutral workflow-discipline skills for apex-router: verify-claims (check model-stated numbers against source), cross-validate (independent Opus-tier reviewer), disciplined-execution (five-gate loop for hard tasks).",
+  "version": "0.1.0",
+  "author": { "name": "runapex" }
+}

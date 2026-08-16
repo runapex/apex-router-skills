@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "apex-router-skills",
+  "description": "Public Claude Code skills that pair with apex-router — vendor-neutral workflow discipline for verifying model output and reviewing your own work before you trust it.",
+  "owner": {
+    "name": "runapex"
+  },
+  "plugins": [
+    {
+      "name": "apex-workflow",
+      "description": "Workflow-discipline skills: verify model-stated numbers against source, cross-validate a change or report with an independent higher-tier reviewer, and run a rigorous five-gate execution loop on hard tasks.",
+      "author": { "name": "runapex" },
+      "category": "workflow",
+      "source": "./plugins/apex-workflow"
+    }
+  ]
+}
