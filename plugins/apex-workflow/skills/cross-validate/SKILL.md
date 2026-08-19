@@ -60,6 +60,46 @@ Give the reviewer the **artifact itself** (the diff, the files, the report) — 
 6. **Report the reconciliation, not just "the reviewer agreed."** State what was flagged, whether the *finding* survived, and what *you* changed and why (including where you rejected the reviewer's proposed fix).
 7. **Cap the loop at 2 passes — an independent review is expensive, so spend it deliberately.** A fix is a *change*, and a change can introduce a new defect, so the original review plus one validation of its fixes is the standard budget: **pass 1** reviews the work; **pass 2** (only if pass 1 produced non-trivial fixes) validates *those fixes* (spawn a fresh reviewer — don't continue the same one). Stop after pass 2. If pass 2 still leaves fixes you can't verify by inspection, verify at ground truth yourself (run the test, grep the oracle), don't burn another review. A third pass happens only if the user explicitly asks for it. Prefer to terminate at pass 1 outright when its fixes are trivially verifiable by inspection — small, local, each with a test or a direct check you can eyeball; spend pass 2 only when the fixes are large, cross-cutting, or subtle. (Worked example: on one batch, pass two caught a regression that pass one's own fix had introduced — routing logic the first fix rewrote dropped a field. That is exactly what the one allowed re-run is for.)
 
+## Third check: the codeqa grounding oracle (facts, not a second vote)
+
+The independent reviewer is a second *reasoner*. codeqa adds a different KIND of check: a
+**deterministic ground-truth oracle** for the `file:line` citations in a finding or report. It is
+**not another opinion to average** (the discipline forbids averaging) — it produces a *fact*: does the
+cited code actually exist, and does the cited span fall within the live file? That is exactly the "go
+to ground truth on disagreement" step (Discipline #4), automated. Run it on **every** cross-validate
+pass whose artifact cites code; it self-skips when nothing is groundable.
+
+**Run it** (reads the finding/report from stdin or a file; `CODEQA_REPOS` points at your repo configs):
+```bash
+echo "<the finding text, incl. its file:line citations>" \
+  | CODEQA_REPOS="$CODEQA_REPOS" python -m apex_router.codeqa.cli ground --check
+# --check -> exit 2 if any citation is stale; add --json for a machine-readable verdict.
+```
+
+**Verdicts** (per citation, against your registered repos):
+- **grounded** — the file exists and the cited span is within it. The citation is real.
+- **stale** — the file exists but the span runs past end-of-file (moved/shrunk). A REAL defect
+  (`--check` → exit 2): the finding cites a line that isn't there.
+- **unverified** — *advisory only.* The path is name-owned by a registered repo but can't be
+  positively located there — it may be a real file in an UNREGISTERED sibling repo (e.g. a `foo/…`
+  path that actually lives in a `foo-ext` sibling), an unreadable file, or an invented path. A
+  deterministic filesystem oracle can't tell these apart, so it refuses to accuse. **Never reject a
+  finding on `unverified`.**
+- **not applicable** — the artifact cites no groundable code; the oracle stays silent (honest skip).
+
+Scope honesty: this oracle deliberately does NOT emit a "hallucinated" verdict. Distinguishing an
+invented citation from a real file in an unregistered sibling repo is beyond a filesystem check
+(every heuristic that tried false-accused real code) — a false accusation would sink a VALID finding,
+worse than a missed catch. The invented-vs-real call is left to the model-side answer-verification
+gate (which sees the retrieved chunks) or to `verify-claims`.
+
+**How to use the verdict:** a `stale` (exit 2) means the finding cites a line that isn't there — treat
+that finding as **factually broken regardless of how plausible its prose is**. `grounded` does NOT
+vindicate a finding — it only proves the cited *location* is real, not that the reasoning about it is
+correct; the independent reviewer still owns the reasoning review. An `unverified` is a nudge to check
+that citation by hand, not a reason to reject. Doctrine unchanged: don't average opinions — the oracle
+hands you a fact (grounded/stale) to act on, not a vote to tally.
+
 ## Common Mistakes
 
 - **Prompting for approval.** "Does this look correct?" yields agreement. Prompt to refute.
