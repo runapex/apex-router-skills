@@ -10,6 +10,7 @@ Public Claude Code skills that pair with [apex-router](https://github.com/runape
 | **verify-claims** | Before quoting a model-produced number, count, ID, or filename, check it against the source with a deterministic tool. Grep beats trust. |
 | **cross-validate** | Before committing a non-trivial change or shipping a report, have a fresh Opus-tier Claude reviewer adversarially refute it. Take the *finding*, author the *fix* yourself. |
 | **disciplined-execution** | A five-gate loop (scope → evidence → adversarial reasoning → verify → report) for multi-step tasks, debugging, and review. |
+| **public-repo-hygiene** | The last gate before a push to a public/shared repo: scan the *added* lines for secrets, internal names, and personal paths; verify the committer identity; read the file list. After the push there's no taking it back. |
 
 ## Install
 
