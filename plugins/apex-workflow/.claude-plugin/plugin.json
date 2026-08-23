@@ -1,6 +1,8 @@
 {
   "name": "apex-workflow",
-  "description": "Vendor-neutral workflow-discipline skills for apex-router: verify-claims (check model-stated numbers against source), cross-validate (independent Opus-tier reviewer), disciplined-execution (five-gate loop for hard tasks), public-repo-hygiene (pre-push leak + identity gate).",
-  "version": "0.2.0",
-  "author": { "name": "runapex" }
+  "description": "Vendor-neutral workflow-discipline skills for apex-router: verify-claims, cross-validate (independent + cross-family reconciliation), disciplined-execution, public-repo-hygiene, model-routing (incl. Pi per-task cues + measured chain planning), and local-references (ground answers in your own books/code via booksearch). Runs in both Claude Code and Pi \u2014 see INVOCATION.md.",
+  "version": "0.3.0",
+  "author": {
+    "name": "runapex"
+  }
 }

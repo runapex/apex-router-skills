@@ -50,6 +50,31 @@ holds. DIFF:
 
 Give the reviewer the **artifact itself** (the diff, the files, the report) — never your summary of it — so it forms an independent view rather than critiquing your framing. Read its findings; don't relay its verdict unread — a subagent reviewer hallucinates too. Its finding is a *lead* to verify.
 
+### Invoke in Pi and Claude CLI
+
+- **Claude Code:** spawn the reviewer as an Opus-tier **subagent** with read-only tools
+  (above), or force the skill with `/apex-workflow:cross-validate`.
+- **Pi:** use a per-task cue to run the review on an independent higher tier without
+  leaving your session — `>>deep <paste diff/report + refute prompt>` (Opus) or
+  `>>kimi …` (a different *family*, the strongest independence). The cue restores your
+  model afterward. Force the skill itself with `/skill:cross-validate`.
+- **Either:** for a big change, chain it — in Pi, `/learn` already ends on a heavy tier;
+  for code, hand the diff to `>>deep`/`>>kimi` and read the refutation before you commit.
+
+### Multi-model reconciliation (design → review → reconcile)
+
+For a substantial design or build, one review pass isn't the whole loop. Escalate to a
+**reconciliation chain across *families*** so no single model's blind spots survive:
+
+1. **Design/produce** on a heavy tier.
+2. **Independent review** on a *different family* (e.g. produce on Claude, review on Kimi —
+   cross-*family* disagreement is stronger than same-family).
+3. **Reconcile:** feed the review + the fixes back to the original reviewer for a final
+   pass; ship only when it confirms the fixes and finds no new blocker.
+
+The disagreements between families are the product. A defect that both a Claude reviewer
+and a Kimi reviewer miss is rare; a defect one catches is exactly what this loop is for.
+
 ## The Discipline
 
 1. **Give the reviewer the same source of truth, not your summary.** Point it at the diff / files / report, so it forms an independent view — not a critique of your description.

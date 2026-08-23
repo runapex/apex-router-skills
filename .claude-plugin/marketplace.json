@@ -1,15 +1,17 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "apex-router-skills",
-  "description": "Public Claude Code skills that pair with apex-router — vendor-neutral workflow discipline for verifying model output and reviewing your own work before you trust it.",
+  "description": "Public Claude Code skills that pair with apex-router \u2014 vendor-neutral workflow discipline for verifying model output and reviewing your own work before you trust it.",
   "owner": {
     "name": "runapex"
   },
   "plugins": [
     {
       "name": "apex-workflow",
-      "description": "Workflow-discipline skills: verify model-stated numbers against source, cross-validate a change or report with an independent higher-tier reviewer, and run a rigorous five-gate execution loop on hard tasks.",
-      "author": { "name": "runapex" },
+      "description": "Vendor-neutral workflow-discipline skills for apex-router: verify-claims, cross-validate (independent + cross-family reconciliation), disciplined-execution, public-repo-hygiene, model-routing (incl. Pi per-task cues + measured chain planning), and local-references (ground answers in your own books/code via booksearch). Runs in both Claude Code and Pi \u2014 see INVOCATION.md.",
+      "author": {
+        "name": "runapex"
+      },
       "category": "workflow",
       "source": "./plugins/apex-workflow"
     }

@@ -27,6 +27,28 @@ This is the whole reason routing means **delegating to subagents and workflow `a
 - **Effort is the dial you *can* vary turn to turn** — it's a per-request parameter, not welded to the cache the way the model is. Dial effort down for a mechanical turn, up for a hard one, freely. It's the *model* you must hold fixed.
 - **Switching the session's own model is a deliberate, one-time, one-way move**, justified only when the *entire remaining task* needs a different tier and you'll eat exactly one context re-write — never a per-subtask hop to save a few tokens.
 
+### In Pi: per-task cues are the cache-safe exception
+
+Claude Code has no per-request model switch, so there the rule is absolute: delegate to a
+subagent, never flip your session model. **Pi is different** — the `apex-route` extension
+gives you a per-task cue that switches for *one message* and **restores your model
+automatically**, and each family keeps its **own** prompt cache, so there is no eviction
+penalty:
+
+```
+>>local  grep for the config loader     # one task on the local tier, then back to your model
+>>kimi   summarise this diff
+>>frontier design the migration
+>>deep   audit this for race hazards
+/apex-route            # sticky switch + list families / active model
+```
+
+So in Pi the cue *is* the delegation: it routes a subtask down/up a tier without a cache
+re-write and without spawning a subagent. The find→verify→synthesize chain is one command:
+`/learn <topic>` (retrieve local → validate sonnet → synthesize opus, restores your model at
+the end). Still never do a *manual* session-model flip per subtask — use the cue, which
+restores; a manual `/model` swap does not.
+
 ## Model Tiers
 
 Three tiers, by capability. Use your platform's current model IDs for each tier (Anthropic's are `claude-opus-*` for heavy, `claude-sonnet-*` for mid, `claude-haiku-*` for light; check your deployment's exact aliases — a misconfigured alias silently breaks routing).
@@ -112,6 +134,20 @@ apex-router route-advise
 - **START_HEAVY** — escalation rate is significantly high (cheap-start is wasting a retry most of the time). **For this task-type, stop cheap-starting and route heavy from the start.** The measured cost of the escalation retries outweighs the cheap wins.
 - **KEEP_CHEAP** — escalation rate is significantly low. **Keep (or widen) cheap-start for this task-type** — the evidence says it reliably works.
 - **HOLD (default)** — not enough samples, or the interval straddles the threshold band. **Keep the static judgment default from the tiers table above.** This is the common, safe case: the loop only overrides your default when the data is strong enough to earn it.
+
+**Beyond the escalation on-ramp: measured chain planning.** `route-advise` decides
+*start-cheap-or-not* for a single subtask. For a multi-model **chain** (retrieve→validate→
+synthesize), apex-router extends the same measured discipline with a promotion-gate-backed
+planner — it proposes which tiers earn their place per task-class and shows the evidence:
+
+```bash
+apex-router chain-planner --task-class <cls>   # proposed chain + "Basis: N chains, +Δ (CI…); X below gate"
+apex-router chain-bench   --rows <sc2.jsonl>   # per-slot verdict: ON (keep) | OFFERED | SKIP (drop)
+```
+
+Same rule as below: it **recommends** a chain with its metrics; you confirm/edit before it
+runs. A slot is only dropped (SKIP) on a significant, out-of-sample, FDR-corrected null —
+never a raw average.
 
 **This is the self-modification, and its guardrails matter.** The routing *decision* adapts to measured data — but through a reviewable recommendation you read and apply, never a silent auto-flip. Three things keep it honest, and you should respect them:
 - **It recommends; it doesn't mutate.** Nothing rewrites this skill or a config. You (or a human) read `route-advise` and change how you route. That keeps a confounded signal from silently degrading routing.
