@@ -1,6 +1,7 @@
 ---
 name: verify-claims
-description: Use when any LLM — a subagent, a local model, or you — states a specific number, count, filename, ID, or factual claim drawn from data, before quoting it in a report, deciding on it, or telling the user it's true. Symptoms: a fluent model output with concrete figures, a "root cause" with a metric, a claim that "X appears N times" or "the log shows Y".
+description: >-
+  Use when any LLM — a subagent, a local model, or you — states a specific number, count, filename, ID, or factual claim drawn from data, before quoting it in a report, deciding on it, or telling the user it's true. Symptoms: a fluent model output with concrete figures, a "root cause" with a metric, a claim that "X appears N times" or "the log shows Y".
 ---
 
 # Verify Claims Against Source

@@ -1,6 +1,7 @@
 ---
 name: model-routing
-description: Use when a task splits into subtasks of uneven difficulty and you're about to delegate to subagents or a workflow and must pick which model tier and reasoning effort runs each piece. Symptoms: "which model should X use", spawning Agent/Workflow subagents, a multi-step job mixing exploration + hard coding + synthesis, "route this", "use the cheap model for the search/grep part", "manage effort", before dispatching parallel agents, before a go/no-go that needs cross-validation. Also when about to switch or downgrade your OWN session's model mid-task, alternate models per request, or worried about prompt-cache eviction / model-switching cost.
+description: >-
+  Use when a task splits into subtasks of uneven difficulty and you're about to delegate to subagents or a workflow and must pick which model tier and reasoning effort runs each piece. Symptoms: "which model should X use", spawning Agent/Workflow subagents, a multi-step job mixing exploration + hard coding + synthesis, "route this", "use the cheap model for the search/grep part", "manage effort", before dispatching parallel agents, before a go/no-go that needs cross-validation. Also when about to switch or downgrade your OWN session's model mid-task, alternate models per request, or worried about prompt-cache eviction / model-switching cost.
 ---
 
 # Model Routing

@@ -1,6 +1,7 @@
 ---
 name: cross-validate
-description: Use when a code change, fix, or written report/analysis is about to be trusted, committed, or delivered and you want an INDEPENDENT reviewer to check it — a fresh Opus-tier Claude reviewer adversarially reviews what you produced, so the two can disagree. Symptoms: "cross-validate this", "get a second opinion on this diff/report", "is this change/finding actually right", before a customer-facing report or a go/no-go, after a non-trivial edit.
+description: >-
+  Use when a code change, fix, or written report/analysis is about to be trusted, committed, or delivered and you want an INDEPENDENT reviewer to check it — a fresh Opus-tier Claude reviewer adversarially reviews what you produced, so the two can disagree. Symptoms: "cross-validate this", "get a second opinion on this diff/report", "is this change/finding actually right", before a customer-facing report or a go/no-go, after a non-trivial edit.
 ---
 
 # Cross-Validate with an Independent Reviewer

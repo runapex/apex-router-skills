@@ -1,6 +1,7 @@
 ---
 name: local-references
-description: Use when a task would benefit from your OWN library — books, papers, or code samples you have locally — instead of the model's parametric memory. Symptoms: "what does <book> say about X", "find a reference/example for this", learning or explaining a concept where a cited source beats a paraphrase, grounding a design in authoritative text, "check this against the book", pulling a worked code example from a course/textbook you own. Pairs with verify-claims (ground the claim in a real source) and model-routing (retrieval is the cheap first stage of a chain).
+description: >-
+  Use when a task would benefit from your OWN library — books, papers, or code samples you have locally — instead of the model's parametric memory. Symptoms: "what does <book> say about X", "find a reference/example for this", learning or explaining a concept where a cited source beats a paraphrase, grounding a design in authoritative text, "check this against the book", pulling a worked code example from a course/textbook you own. Pairs with verify-claims (ground the claim in a real source) and model-routing (retrieval is the cheap first stage of a chain).
 ---
 
 # Ground answers in your local library (books + code samples)

@@ -1,6 +1,7 @@
 ---
 name: public-repo-hygiene
-description: Use before pushing, committing to, or opening a PR against a PUBLIC or shared repository — the last gate before code leaves your machine. Scans the ADDED lines for secrets, internal identifiers, and personal paths, and checks the committer identity, so a private detail doesn't land in public history where deleting it later doesn't help. Symptoms: "about to push to the public repo", "is this safe to make public", "check for leaks before I push", moving private code to an open-source repo, any push to an org/shared remote.
+description: >-
+  Use before pushing, committing to, or opening a PR against a PUBLIC or shared repository — the last gate before code leaves your machine. Scans the ADDED lines for secrets, internal identifiers, and personal paths, and checks the committer identity, so a private detail doesn't land in public history where deleting it later doesn't help. Symptoms: "about to push to the public repo", "is this safe to make public", "check for leaks before I push", moving private code to an open-source repo, any push to an org/shared remote.
 ---
 
 # Public-Repo Hygiene — the last gate before code leaves your machine
