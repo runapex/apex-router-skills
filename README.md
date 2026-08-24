@@ -8,7 +8,7 @@ Public workflow-discipline skills that pair with [apex-router](https://github.co
 |---|---|
 | **model-routing** | Pick the model tier + reasoning effort per subtask when delegating to subagents or a workflow; route by delegation (not by flipping your session model, which evicts the prompt cache). Includes the measure → advise → adapt loop that lets apex-router's escalation defaults self-tune from logged outcomes. |
 | **verify-claims** | Before quoting a model-produced number, count, ID, or filename, check it against the source with a deterministic tool. Grep beats trust. |
-| **cross-validate** | Before committing a non-trivial change or shipping a report, have a fresh higher-tier reviewer adversarially refute it — including cross-*family* reconciliation (produce on one family, review on another). Take the *finding*, author the *fix* yourself. |
+| **cross-validate** | Before committing a non-trivial change or shipping a report, have a fresh higher-tier reviewer adversarially refute it — reconciles across Claude, Codex, and Kimi families (produce on one family, review on another). Take the *finding*, author the *fix* yourself. |
 | **disciplined-execution** | A five-gate loop (scope → evidence → adversarial reasoning → verify → report) for multi-step tasks, debugging, and review. |
 | **public-repo-hygiene** | The last gate before a push to a public/shared repo: scan the *added* lines for secrets, internal names, and personal paths; verify the committer identity; read the file list. After the push there's no taking it back. |
 | **local-references** | Ground an answer in your OWN library — books, papers, code samples — via apex-router's `booksearch` (local retrieval + cited passages) instead of the model's memory. Pi: `/books`; Claude: `/books`. |

@@ -1,7 +1,9 @@
 # Invoking apex-workflow skills — Pi and Claude CLI
 
 These skills are plain [Agent-Skills-spec](https://agentskills.io) `SKILL.md` files, so
-the **same skill runs in both Claude Code and Pi**. Below: how to install and how to
+the **same skill runs in both Claude Code and Pi**. The routing and cross-validate skills
+reconcile across three frontier families — **Claude, Codex, and Kimi** — so a finding
+produced on one family can be reviewed on another. Below: how to install and how to
 "kick" each one in each tool, plus the apex-router capabilities they now pair with.
 
 ## Install
@@ -56,7 +58,7 @@ your prompt cache. **Pi resolves this** with the `apex-route` extension: a `>>fa
 runs *one task* on another family and **restores your model automatically** (each family
 keeps its own cache, so there's no re-write penalty):
 ```
->>local  grep for the config loader          # local Ornith tier (ollama)
+>>local  grep for the config loader          # active local family (ollama)
 >>kimi   summarise this diff                  # Kimi K2 (via the apex proxy)
 >>frontier design the migration              # Claude Sonnet
 >>deep   audit this for race hazards          # Claude Opus
