@@ -56,10 +56,14 @@ Three tiers, by capability. Use your platform's current model IDs for each tier 
 
 | Tier | Use for |
 |---|---|
-| **Heavy** (Opus-class) | Orchestration, coordinating subagent results, multi-step reasoning, synthesis/judgment, **heavy coding**, **cross-validation** |
-| **Mid** (Sonnet-class) | Searching/exploring the codebase, gathering facts, writing simple/non-trivial scripts, first-pass drafts you'll review |
-| **Light** (Haiku-class) | grep/curl/bash one-liners, trivial mechanical edits, bulk find-and-replace, dumb glue you'll eyeball |
+| **Heavy** (Opus-class / GPT-5.6 Sol) | Orchestration, coordinating subagent results, multi-step reasoning, synthesis/judgment, **heavy coding**, **cross-validation** |
+| **Mid** (Sonnet-class / GPT-5.6 Terra) | Searching/exploring the codebase, gathering facts, writing simple/non-trivial scripts, first-pass drafts you'll review |
+| **Light** (Haiku-class / GPT-5.6 Luna) | grep/curl/bash one-liners, trivial mechanical edits, bulk find-and-replace, dumb glue you'll eyeball |
 
+> GPT-5.6 route aliases in apex-router's Pi integration are `>>gpt-luna`,
+> `>>gpt-terra`, and `>>gpt-sol`; their configured default efforts are low, medium,
+> and high. These are dispatchable Pi families, while this skill remains advisory prose.
+>
 > A larger reasoning model above Opus (e.g. Anthropic's Fable) slots in at the **top of the heavy tier for the heaviest *pure reasoning*** (adversarial verification, go/no-go synthesis, hard proofs) — not for coding, where the Opus tier leads. Use it only when the task genuinely justifies the cost; don't reflexively route every heavy subtask to the absolute ceiling.
 
 ## Effort Routing (the second dial)
