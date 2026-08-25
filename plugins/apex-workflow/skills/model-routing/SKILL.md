@@ -116,11 +116,15 @@ The escalation defaults above start as judgment. Over time, apex-router turns th
 **1. Log each cheap-start outcome (measure).** After an eligible cheap-start resolves, record whether it succeeded or escalated. Fail-safe (logging never blocks or breaks a dispatch); partial coverage is fine.
 
 ```bash
-# cheap attempt succeeded:
-apex-router route-log --task-type explore  --start-tier sonnet --outcome ok
+# cheap attempt succeeded (PI_SESSION_ID is set in Pi sessions; omit --context-size and --session-id when unknown):
+apex-router route-log --task-type explore  --start-tier sonnet --outcome ok \
+  --context-size <tokens-when-known> --session-id "$PI_SESSION_ID"
 # cheap attempt failed → you re-dispatched heavy:
-apex-router route-log --task-type generate --start-tier sonnet --outcome escalated --note "empty result"
+apex-router route-log --task-type generate --start-tier sonnet --outcome escalated \
+  --note "empty result" --context-size <tokens-when-known> --session-id "$PI_SESSION_ID"
 ```
+
+Exploration dispatches (deliberate cheap-start on a heavy-default cell) must log `--note explore` so analysis can separate them.
 
 `--task-type` is your intent label (explore/generate/review/refactor/debug); `--start-tier` is the cheap model you tried; `--outcome` is `ok` or `escalated`.
 
