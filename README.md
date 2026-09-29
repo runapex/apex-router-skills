@@ -12,6 +12,7 @@ Public workflow-discipline skills that pair with [apex-router](https://github.co
 | **disciplined-execution** | A five-gate loop (scope → evidence → adversarial reasoning → verify → report) for multi-step tasks, debugging, and review. |
 | **public-repo-hygiene** | The last gate before a push to a public/shared repo: scan the *added* lines for secrets, internal names, and personal paths; verify the committer identity; read the file list. After the push there's no taking it back. |
 | **local-references** | Ground an answer in your OWN library — books, papers, code samples — via apex-router's `booksearch` (local retrieval + cited passages) instead of the model's memory. Pi: `/books`; Claude: `/books`. |
+| **change-classification** | A per-change risk read from a *panel* of independent models: classify a diff on change-class, requirement-fit, and blast-radius from the diff + test output + requirements, and surface where the models AGREE (trust) vs DISAGREE (look here). A measurement, not a gate. Backed by apex-router's `scripts/change_classifier.py`. |
 
 ## Install
 
