@@ -12,7 +12,7 @@ A single reviewer gives you one opinion; you can't tell a confident-right from a
 confident-wrong. A **panel of independent models**, each answering the SAME fixed
 schema about the SAME change, gives you something a single opinion can't:
 **agreement is trust, and disagreement is a map.** Where the panel converges, the
-read is safe to act on. Where it splits — one says blast is `low`, another `high`
+read has supporting evidence, not proof of safety. Where it splits — one says blast is `low`, another `high`
 — that axis is exactly where to look before you trust the change.
 
 **Core principle: the product is the DIVERGENCE, not the labels.** This is a
@@ -65,12 +65,23 @@ parallel, and prints the per-model classifications plus the divergence summary.
 
 ```bash
 python3 scripts/change_classifier.py \
-  --repo .  --base HEAD \        # or: --diff change.diff  (or '-' for stdin)
-  --tests test_run.log \         # the regression signal — omit only if none exists
-  --reqs spec.md,acceptance.md \ # the yardstick (comma-separated)
-  --panel panel.json \           # the model panel (see below)
-  --out report.json              # full report; the divergence prints to stdout
+  --repo . --base HEAD \
+  --tests test_run.log \
+  --reqs spec.md,acceptance.md \
+  --panel panel.json \
+  --out report.json
 ```
+
+Use `--diff change.diff` (or `-` for stdin) instead of `--repo` for a curated diff.
+`--repo` includes tracked changes only; add `--include-untracked` explicitly to
+include untracked files. Review inputs for secrets before giving them to a hosted
+panel. `--tests` supplies the regression signal; omit it only when none exists.
+`--reqs` is a comma-separated list. The full per-model report goes to `--out`;
+stdout contains the divergence summary and each member's success status. Large
+inputs are clipped; `input_clipped_chars` in the report and an `INCOMPLETE INPUT`
+flag identify omitted material. Such a report is not a review of the whole change.
+Treat reports as sensitive: failed commands' diagnostic tails can contain private
+data. Inputs are untrusted; panel agreement is not protection from prompt injection.
 
 ### The panel is config-driven — bring your own models
 
@@ -93,7 +104,8 @@ id**, so nothing about your setup ships with it.
 ## Reading the result — the discipline
 
 1. **Look at the flags first.** The divergence block ends in `flags`. `panel
-   broadly agrees` means the read is safe to act on. Anything else names the axis
+   broadly agrees` means the measured axes converge, not that the change is safe.
+   Anything else names the axis
    that split — a `requirement-fit DISAGREEMENT`, a `blast-radius SPREAD>=2`, a
    `regression-signal DISAGREEMENT`, "at least one model rates blast HIGH", "at
    least one model says the change REGRESSES a requirement."
@@ -121,13 +133,16 @@ drop it for routine ones — the same judgment `model-routing` applies elsewhere
 
 ## Failure modes (fail loud, not silent)
 
-- **A member's command isn't found or times out** → that member is marked
+- **A member's command fails to start, exits nonzero, or times out** → that member is marked
   `ok:false` with the reason; the panel continues with the rest. A one-member panel
-  can't diverge — the tool says so (`need >=2 valid classifications`).
+  can't diverge — the tool says so (`need >=2 valid classifications`). If every
+  member fails, the report is still emitted but the CLI exits 1 (operational
+  failure, not a risk gate). High-risk classifications do not change the exit code.
 - **A model wraps its JSON in prose or emits a decoy sub-object** → the extractor
   selects the object carrying the required top-level keys, not a trailing fragment.
-  If a member still returns no parseable object, it's `ok:false` (inspect its
-  `raw_tail`), not silently dropped.
+  JSON strings may contain braces. Only complete, structurally valid classifications
+  on stdout count; error objects, partial answers, and stderr do not. Invalid output
+  is `ok:false` (inspect its `raw_tail`), not silently counted as agreement.
 - **No test output supplied** → regression signal will read `not-covered`; that's
   honest, not a pass. Supply the real test/CI log to get a grounded blast read.
 - **Panel agrees but all rate the change unsafe** → that's not divergence, it's a
