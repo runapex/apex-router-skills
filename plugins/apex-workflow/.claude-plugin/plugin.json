@@ -1,7 +1,7 @@
 {
   "name": "apex-workflow",
   "description": "Vendor-neutral workflow-discipline skills for apex-router: verify-claims, cross-validate (independent + cross-family reconciliation), disciplined-execution, public-repo-hygiene, model-routing (incl. Pi per-task cues + measured chain planning), local-references (ground answers in your own books/code via booksearch), and change-classification (a multi-model panel risk read per change). Runs in both Claude Code and Pi \u2014 see INVOCATION.md.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "author": {
     "name": "runapex"
   }

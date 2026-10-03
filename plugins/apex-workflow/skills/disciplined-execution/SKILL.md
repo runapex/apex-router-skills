@@ -22,6 +22,7 @@ State what done looks like before touching anything.
 - Separate known from assumed. Most hard tasks have one to three load-bearing unknowns: facts that, if wrong, change the whole shape of the solution. Name them explicitly.
 - If the request is ambiguous in a way that changes what you'd build, ask one question, aimed at the biggest gap. Otherwise pick the sensible default, say so in one line, and proceed. Ask questions to change outcomes, not to feel safe.
 - Right-size the effort. Match the depth of this process to the stakes of the task. Deep reasoning belongs in planning and review, not in mechanical steps.
+- Match the tier to the gate: deliberate reasoning (scoping, adversarial review, verification judgment) on the Heavy tier, mechanical steps on Light — see `model-routing` for the tiers and how to delegate them.
 
 ### Gate 2 — Evidence before reasoning
 

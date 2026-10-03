@@ -51,6 +51,21 @@ holds. DIFF:
 
 Give the reviewer the **artifact itself** (the diff, the files, the report) — never your summary of it — so it forms an independent view rather than critiquing your framing. Read its findings; don't relay its verdict unread — a subagent reviewer hallucinates too. Its finding is a *lead* to verify.
 
+### Pre-read (System 1, optional)
+
+Before dispatching the fresh Opus reviewer on a **code diff**, you can have the local tier take a cheap first pass and hand its claims to the reviewer:
+
+```bash
+git diff <base>...<branch> > /tmp/change.diff
+apex-router review-preread /tmp/change.diff --markdown > /tmp/preread.md
+```
+
+`review-preread` runs a local model (Ornith on ollama) and returns findings phrased as **claims to verify**, not verdicts. Hand that markdown list to the reviewer **together with** the artifact, the requirements, and the evidence (test/CI output) — never instead of them — and extend the refute prompt: "A separate pre-reader produced the claims below. CONFIRM or REFUTE each one with file:line evidence, then add every finding it missed. A claim being listed is not evidence that it is true."
+
+**This does not break independence.** The pre-read is a **separate producer** — a different model that saw only the diff — so handing its claims over does not leak the producer's reasoning into the review. (What breaks independence is giving the reviewer *your* summary or rationale; the pre-read is neither.) The risk to manage is anchoring, which is why the reviewer is told to refute each claim and to add its own.
+
+**Record pre-read recall in the review note:** `pre-read recall = confirmed pre-read claims ÷ reviewer's total confirmed findings` (e.g. "pre-read: 4 claims, 2 confirmed, 2 refuted; reviewer confirmed 5 in total → recall 2/5 = 0.40"). Over time that number says whether the System 1 pass is earning its slot. Skip the pre-read for non-code artifacts, trivial diffs, or when the local tier is down — the review stands without it.
+
 ### Invoke in Pi and Claude CLI
 
 - **Claude Code:** spawn the reviewer as an Opus-tier **subagent** with read-only tools

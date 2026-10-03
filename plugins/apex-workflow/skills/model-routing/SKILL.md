@@ -97,6 +97,24 @@ Ask of each subtask: **does getting this wrong cost me, and is the work hard to 
 - **Workflows:** set `model` and `effort` per `agent()` call — light stages `{effort: 'low'}` for finders/scanners/grep, mid `{effort: 'medium'}` for exploration, heavy `{effort: 'high'}` for the verify/synthesize/judge stages. This mirrors the canonical find→verify→synthesize shape: cheap shallow finders, heavy deep judges.
 - **Your own session:** if you're doing orchestration/reasoning/heavy-coding yourself, be on the heavy tier at high/xhigh effort. Adjust *effort* per turn freely. But **do not flip your session's model per subtask** — that evicts your prompt cache. Push the cheap work *down into subagents* instead.
 
+## Check pressure before a fan-out
+
+Parallel agents share one upstream rate-limit budget. A fan-out that ignores it turns into a burst of 429s and retries that costs more than serializing would have. apex-router reads that budget from local telemetry:
+
+```
+apex-router pressure [--json] [--check]
+# level GREEN / AMBER / RED from the last 15 min of telemetry, with a recommendation
+# --check: exit 0 (GREEN) / 1 (AMBER) / 2 (RED) / 3 (UNKNOWN: telemetry missing or unreadable) / 4 (usage)
+# fewer than 10 requests in the window reads GREEN (insufficient sample), unless a retry-after arrived
+```
+
+- **AMBER** — "shed mechanical and exploration subagents one tier down (opus→sonnet, sonnet→haiku); cap parallel heavy agents at 2".
+- **RED** — "no new heavy fan-out; serialize; mechanical work to haiku or the local tier; wait retry-after or 60 s before retrying heavy".
+- **GREEN** — route as above.
+- **UNKNOWN** (exit 3) — "dispatch conservatively, as for AMBER": the gate could not read telemetry, so treat it as AMBER rather than as a pass.
+
+**When:** the orchestrator runs it **once before dispatching 2+ agents**, and **again if it sees a 429 or a transport error** from any agent. Pressure only sheds work the routing above already calls mechanical or exploration; it never pushes judgment, synthesis, or cross-validation below Heavy — under RED, those wait instead.
+
 ## Escalation: start cheap, promote on failure (opt-in, measured)
 
 A second routing pattern, borrowed from escalation routers: instead of committing a subtask to one tier up front, **start it on a cheap tier and re-dispatch at the frontier tier only if the cheap attempt fails.** When the cheap tier succeeds, you paid the cheap price; when it fails, you fall back to where you'd have started anyway. This is *additive* to the judgment routing above.
@@ -108,6 +126,25 @@ A second routing pattern, borrowed from escalation routers: instead of committin
 **Escalate only on a POSITIVE failure signal** — an error, an empty/malformed/truncated result, an explicit low-confidence or "cannot decide" from the subagent, or a failed verification/test. **Do NOT treat "looks plausible" as success and do NOT treat it as failure** — escalation catches *observable* failure, not confident-but-wrong output. Confident-but-wrong is still the job of `cross-validate`.
 
 **Cost is not free.** When the cheap attempt fails, its cost is *added on top of* the frontier retry — escalation only nets out when the cheap tier succeeds often enough to outweigh the wasted retries. Whether that holds for a given task class is an empirical question, which is why the loop below measures it.
+
+## System 1 first: TDD-gated cheap start for implementers
+
+System 1 is the fast, cheap reflex (a Mid-tier or local-codegen draft in one pass); System 2 is the slow, deliberate reasoner on the Heavy tier. **System 2 adjudicates, System 1 drafts** — let the reflex take the first swing wherever an oracle can grade it, and spend deliberate reasoning where the reflex demonstrably missed.
+
+**The rule.** An implementer subtask that arrives with a **RED focused test in hand** (TDD step 1 done: the failing test exists and you watched it fail for the right reason) and a **bounded file set** (named files, one module) is **eligible for cheap-start on the Mid tier — or the local codegen lane — even though it writes files.** This is the one exception to "writes files → start heavy" above, and it holds because both reasons for that rule are discharged:
+- **The test is the oracle.** Success is not "looks plausible"; it is the focused test going green with the rest of the suite still green. No judgment call is left to the cheap tier.
+- **The retry is a clean re-run from the same RED state.** Discard the cheap attempt's edits to the bounded file set (`git checkout -- <files>` or `git stash`) and the Heavy implementer starts from exactly the RED state the cheap one did. Nothing half-done survives.
+
+**Escalate to Heavy only on a positive signal:** the test is **still RED after one cheap attempt** (or the attempt broke other tests), or the agent reports **cannot-decide**. One attempt, not a loop — a second cheap retry pays the escalation cost without the escalation.
+
+**Not eligible — start these Heavy:**
+- anything **without a failing test** (no oracle; write the RED test first, then decide);
+- **cross-module refactors** (the file set isn't bounded, and a partial edit spans interfaces the test doesn't cover);
+- **security-sensitive code** (auth, crypto, permissions, trust-boundary input handling — a green test is not evidence the code is safe).
+
+**Dispatch shape (Claude Code):** an Agent call on the Mid tier whose prompt names the failing test, the exact files it may touch, and the exit condition: "make this test pass touching only these files; if it is still red after your attempt, or you cannot decide, say CANNOT-DECIDE and stop." The anti-pattern this replaces: the same "implement X" agent dispatched again and again, every time on Heavy, each holding a RED test that could have graded a cheap draft.
+
+**This is the measure → advise → adapt loop below, applied to implementers.** A cheap attempt that goes green is an `ok`; one re-dispatched Heavy is `escalated`. In Claude Code those route_log rows now come for free (the Agent-tool hook below), so the evidence accumulates without manual logging, and `route-advise` tells you per task-type whether TDD-gated cheap-start is paying off (KEEP_CHEAP) or not (START_HEAVY). In Pi, log it by hand with `--task-type generate --note tdd`.
 
 ## The measure → advise → adapt loop (this is where routing self-modifies)
 
@@ -128,11 +165,14 @@ Exploration dispatches (deliberate cheap-start on a heavy-default cell) must log
 
 `--task-type` is your intent label (explore/generate/review/refactor/debug); `--start-tier` is the cheap model you tried; `--outcome` is `ok` or `escalated`.
 
+**In Claude Code this step is automatic.** A PostToolUse hook on the Agent tool writes a route_log row for every subagent dispatch (surface `claude-code`, `task_type`, `start_tier`, `outcome`), and `apex-router route-join` infers escalations offline, so you no longer call `route-log` by hand in Claude Code. **Run `apex-router route-join` before `apex-router route-advise`** — the advice only picks up the claude-code rows after the join. In Pi, keep logging manually as shown above.
+
 **2. Read the escalation rate (readout).** `apex-router route-readout` aggregates the log into a per-task-type escalation rate ("when we start `explore` cheap, how often does it bounce heavy?").
 
 **3. Act only on a SIGNIFICANT rate (advise → adapt).** A raw rate is not actionable — 3/5 escalations is noise. `apex-router route-advise` applies a binomial significance test (Wilson score interval + a minimum-sample floor) and recommends a change **only when the evidence clears a threshold**:
 
 ```
+apex-router route-join      # Claude Code: fold in hook rows + inferred escalations first
 apex-router route-advise
 # task_type      n   rate      95% CI   recommendation
 # explore       60   0.03  [0.01,0.11]  KEEP_CHEAP   ↳ cheap-start reliable
@@ -191,3 +231,5 @@ This is the closing step of the heavy path: **heavy tier produces → independen
 - **You raised the model tier but left effort at `low`** (or cranked effort on a model too small to use it) — the dials are mismatched. Set them together.
 - **You're about to flip a route based on a raw escalation rate.** Run `apex-router route-advise` first — act on a *significant* recommendation, not a noisy point estimate. HOLD means keep the default.
 - **Heavy coding or a decision-driving report is about to be trusted/committed/delivered with only one model's eyes on it.** Run `cross-validate` first — this is not optional.
+- **You dispatched 3+ Heavy agents in parallel without checking pressure.** Run `apex-router pressure` before the fan-out (and again on a 429 or transport error); under AMBER cap parallel heavy agents at 2, under RED serialize.
+- **An implementer with a RED test in hand started Heavy with no cheap attempt logged.** If the file set is bounded and the code isn't security-sensitive, cheap-start it on Mid (or the local codegen lane) and escalate only if the test stays red — see "System 1 first".
