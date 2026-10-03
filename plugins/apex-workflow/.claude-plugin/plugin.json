@@ -1,7 +1,7 @@
 {
   "name": "apex-workflow",
-  "description": "Vendor-neutral workflow-discipline skills for apex-router: verify-claims, cross-validate (independent + cross-family reconciliation, optional local pre-read), disciplined-execution, public-repo-hygiene, model-routing (incl. Pi per-task cues, measured chain planning, and the pressure gate before a fan-out), local-references (ground answers in your own books/code via booksearch), change-classification (a multi-model panel risk read per change), evidence-labels (nine labels so a verification gap never reads as a pass), and unattended-loop (blocker procedure, never-loosen gates, hard limits and a morning report for nightly runs). Runs in both Claude Code and Pi — see INVOCATION.md.",
-  "version": "0.6.0",
+  "description": "Vendor-neutral workflow-discipline skills for apex-router: verify-claims, cross-validate (independent + cross-family reconciliation, optional local pre-read), disciplined-execution, public-repo-hygiene, model-routing (incl. Pi per-task cues, measured chain planning, and the pressure gate before a fan-out), local-references (ground answers in your own books/code via booksearch), change-classification (a multi-model panel risk read per change), evidence-labels (nine labels so a verification gap never reads as a pass), unattended-loop (blocker procedure, never-loosen gates, hard limits and a morning report for nightly runs), and dependency-vetting (six checks incl. an archived OSV query on the package and its transitive lock). Runs in both Claude Code and Pi — see INVOCATION.md.",
+  "version": "0.7.0",
   "author": {
     "name": "runapex"
   }
