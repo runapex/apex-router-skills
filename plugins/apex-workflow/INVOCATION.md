@@ -28,7 +28,7 @@ Pi discovers skills from `~/.agents/skills/`, `~/.pi/agent/skills/`, and project
 ln -s ~/.claude/plugins/cache/apex-router-skills/apex-workflow/*/skills ~/.agents/skills/apex-workflow
 
 # B) or point pi at the Claude skills dir via settings (~/.pi/agent/settings.json):
-#    { "skills": ["~/.claude/plugins/cache/apex-router-skills/apex-workflow/0.3.0/skills"] }
+#    { "skills": ["~/.claude/plugins/cache/apex-router-skills/apex-workflow/0.6.0/skills"] }
 ```
 
 Skills then load two ways:
@@ -46,6 +46,8 @@ Skills then load two ways:
 | **disciplined-execution** | a hard, multi-step/unknown/ debugging task | `/apex-workflow:disciplined-execution` | `/skill:disciplined-execution` |
 | **public-repo-hygiene** | before pushing/committing to a public/shared repo | `/apex-workflow:public-repo-hygiene` | `/skill:public-repo-hygiene` |
 | **local-references** | ground an answer in your own books/code samples | `/apex-workflow:local-references` (or `/books`) | `/skill:local-references` (or `/books`) |
+| **evidence-labels** | any handoff / PR / review note that says something was checked, especially when a check could not run or is stale | `/apex-workflow:evidence-labels` | `/skill:evidence-labels` |
+| **unattended-loop** | a nightly, scheduled, or `/loop` run the user started that must decide for itself on blockers | `/apex-workflow:unattended-loop` | `/skill:unattended-loop` |
 
 ## The apex-router capabilities these skills now pair with
 

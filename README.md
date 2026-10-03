@@ -13,6 +13,8 @@ Public workflow-discipline skills that pair with [apex-router](https://github.co
 | **public-repo-hygiene** | The last gate before a push to a public/shared repo: scan the *added* lines for secrets, internal names, and personal paths; verify the committer identity; read the file list. After the push there's no taking it back. |
 | **local-references** | Ground an answer in your OWN library — books, papers, code samples — via apex-router's `booksearch` (local retrieval + cited passages) instead of the model's memory. Pi: `/books`; Claude: `/books`. |
 | **change-classification** | A per-change risk read from a *panel* of independent models: classify a diff on change-class, requirement-fit, and blast-radius from the diff + test output + requirements, and surface where the models AGREE (trust) vs DISAGREE (look here). A measurement, not a gate. Backed by apex-router's `scripts/change_classifier.py`. |
+| **evidence-labels** | Nine labels for every check you report — PASS, FAIL, PARTIAL, BLOCKED, INCONCLUSIVE, STALE, ASSUMED, N/A, WAIVED — and one rule: a gap blocks the claim that rests on it, nothing else. Turns "tests pass" into a handoff someone can act on. |
+| **unattended-loop** | How an agent decides when nobody is there: a blocker procedure (document → one advisor round → re-check → act → verify), a never-loosen rule for failing gates, a hard-limit list that advisor agreement cannot unlock, scoped commits on `nightly/<date>`, and a morning report. Pairs with `apex-router pressure --check` and `nightly`. |
 
 ## Install
 
