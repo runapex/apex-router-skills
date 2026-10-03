@@ -1,7 +1,7 @@
 ---
 name: dependency-vetting
 description: >-
-  Use BEFORE adding, replacing, or upgrading any third-party package — runtime, test, or build — and before accepting a lockfile change you did not author. Runs a fixed six-point check on the package AND every new or changed package in its transitive lock: official index, exact pinned + hash-locked version, maintained (a release in the last 24 months), permissive OSI license, no known vulnerability per an OSV query you archive, and scoped to the component that needs it. Symptoms: "just pip/npm/cargo install X", a PR whose lockfile diff is longer than its code diff, a model that suggests a package you have never heard of, a stdlib-only component about to grow a dependency.
+  Use BEFORE adding, replacing, or upgrading any third-party package — runtime, test, or build — and before accepting a lockfile change you did not author. Also use on a cadence (nightly, weekly, before a release) to RE-SCAN the whole lock, because advisories are published after you vetted. Shift-left: a fixed six-point check on the package AND every new or changed package in its transitive lock — official index, exact pinned + hash-locked version, maintained (a release in the last 24 months), permissive OSI license, no known vulnerability per an OSV query you archive, and scoped to the component that needs it. Shift-right: one OSV batch query over every package in the lock, diffed against the last archived result. Symptoms: "just pip/npm/cargo install X", a PR whose lockfile diff is longer than its code diff, a model that suggests a package you have never heard of, a stdlib-only component about to grow a dependency, a lock that was vetted months ago and never re-checked.
 ---
 
 # Dependency Vetting
@@ -18,6 +18,12 @@ package names that do not exist or are not the one you mean.
 it drags in.** The transitive lock is the real diff. A clean top-level package with a
 vulnerable sub-dependency is a vulnerable change.
 
+Vetting has two sides of the merge. **Left** of it, the six checks below gate what gets in.
+**Right** of it, the lock you already ship keeps aging: an advisory published next month
+against a version you vetted today is a new finding, and nothing in the add-time check will
+surface it. So the same OSV query runs again over the whole lock, on a cadence, and the diff
+against the last archived result is what you read.
+
 ## When to Use
 
 - Before `pip install` / `uv add` / `npm install` / `cargo add` / `go get` of anything new.
@@ -25,6 +31,8 @@ vulnerable sub-dependency is a vulnerable change.
 - Before accepting a lockfile change in a PR you did not write (a bot, a subagent, a model).
 - When a stdlib-only or minimal-deps component is about to grow a dependency — that is a
   design decision first, and this check second.
+- **On a cadence** (nightly, weekly, before each release or deploy): re-scan the full lock
+  (shift-right, below). A lock that passed in March says nothing about June.
 
 **When NOT to use:** a bump within an already-vetted package where the lock diff touches only
 that package's own version (re-run step 5 for the new version; skip the rest).
@@ -81,6 +89,58 @@ git diff -- go.sum | grep -E '^\+' | cut -d' ' -f1-2 | sort -u    # Go
 
 Every name on that list goes through checks 1–5. (Check 6 applies to the direct dependency.)
 
+## Shift-right: re-scan the lock you already ship
+
+The six checks are an add-time gate. Advisories keep arriving after it: run the OSV query
+over **every** package in the lock, not just the diff, on a schedule, and read the change.
+
+1. **Extract the full `(ecosystem, name, version)` set from the lock** — the same parsers as
+   above, without the `git diff`:
+
+   ```bash
+   # uv.lock → OSV querybatch body
+   python3 - <<'EOF' > osv-batch.json
+   import tomllib, json
+   lock = tomllib.load(open("uv.lock", "rb"))
+   q = [{"package": {"name": p["name"], "ecosystem": "PyPI"}, "version": p["version"]}
+        for p in lock["package"] if "version" in p]
+   json.dump({"queries": q}, open("osv-batch.json", "w"))
+   EOF
+   # package-lock.json: iterate "packages" keys (strip the node_modules/ prefix), ecosystem "npm"
+   # Cargo.lock: [[package]] name/version, ecosystem "crates.io"
+   # go.sum: module/version pairs, ecosystem "Go"
+   ```
+
+2. **Query once, batched**, and archive the response with a date:
+
+   ```bash
+   curl -sS -X POST https://api.osv.dev/v1/querybatch \
+     -H 'content-type: application/json' -d @osv-batch.json \
+     | tee "osv-lock-$(date +%F).json"
+   ```
+
+   `querybatch` returns one `{"vulns": [...]}` or `{}` per query, in order, with ids only;
+   fetch `/v1/vulns/<id>` for the details of a new hit.
+
+3. **Diff against the previous archive.** New advisory ids are the finding; ids already
+   triaged are not. Report per hit: package, version, advisory id, severity, whether the
+   affected range includes your version, and the fixed version if one exists.
+
+4. **Act at the right side's pace.** A new hit on a shipped lock is a user decision (upgrade,
+   pin a fixed version, accept with a recorded reason), never a silent bump: the bump itself
+   goes back through the six checks. In an unattended run it is a hard stop that lands in the
+   morning report (see `unattended-loop`). An unreachable OSV on the cadence run is BLOCKED
+   for that run, not a clean sweep.
+
+5. **Where to hang it.** Any scheduler that already runs nightly for the project — a CI cron,
+   `apex-router nightly` if the project uses apex-router, a `/loop` — can own the re-scan.
+   The archive lives next to the add-time archives so one directory tells the whole history.
+
+Left-side checks 1–4 and 6 (index, pins, maintenance, license, scope) do not need the
+cadence: they change only when the lock changes. Maintenance (check 3) is the exception if
+your policy cares about abandonment: a yearly pass over the "last release" dates catches a
+package that quietly stopped shipping.
+
 ## Discipline
 
 1. **Verify the package is the one you mean.** Models invent names and typosquats exist.
@@ -125,6 +185,8 @@ Decision: add | hold for user (<reason>)
 - **OSV timed out, so I skipped it.** BLOCKED. Say so; do not merge on it.
 - **A model told you the package name.** Confirm it exists and is the right one before
   anything else.
+- **"We vetted it when we added it."** That was the left side. When did the lock last get
+  re-scanned? If the answer is "never" or "months ago", the clean verdict has expired.
 
 ## Pairs with
 
